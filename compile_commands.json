@@ -1,0 +1,27 @@
+[
+  {
+    "directory": "c:/Users/huymi/OneDrive/Tài liệu/HCMUT/OS",
+    "command": "C:/Users/huymi/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/bin/gcc.exe -Wall -Wextra -O3 -pthread -Isrc -c src/approach1_single.c",
+    "file": "src/approach1_single.c"
+  },
+  {
+    "directory": "c:/Users/huymi/OneDrive/Tài liệu/HCMUT/OS",
+    "command": "C:/Users/huymi/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/bin/gcc.exe -Wall -Wextra -O3 -pthread -Isrc -c src/approach2_local.c",
+    "file": "src/approach2_local.c"
+  },
+  {
+    "directory": "c:/Users/huymi/OneDrive/Tài liệu/HCMUT/OS",
+    "command": "C:/Users/huymi/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/bin/gcc.exe -Wall -Wextra -O3 -pthread -Isrc -c src/approach3_mutex.c",
+    "file": "src/approach3_mutex.c"
+  },
+  {
+    "directory": "c:/Users/huymi/OneDrive/Tài liệu/HCMUT/OS",
+    "command": "C:/Users/huymi/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/bin/gcc.exe -Wall -Wextra -O3 -pthread -Isrc -c src/approach3_batch.c",
+    "file": "src/approach3_batch.c"
+  },
+  {
+    "directory": "c:/Users/huymi/OneDrive/Tài liệu/HCMUT/OS",
+    "command": "C:/Users/huymi/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/bin/gcc.exe -Wall -Wextra -O3 -pthread -Isrc -c src/main.c",
+    "file": "src/main.c"
+  }
+]

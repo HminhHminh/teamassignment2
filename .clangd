@@ -1,0 +1,15 @@
+CompileFlags:
+  Add:
+    - -Isrc
+    - --target=x86_64-w64-windows-gnu
+    - -isystem
+    - C:/Users/huymi/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/x86_64-w64-mingw32/include
+    - -isystem
+    - C:/Users/huymi/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include
+    - -Wno-builtin-macro-redefined
+    - -Wno-incompatible-library-redeclaration
+  Compiler: C:/Users/huymi/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/bin/gcc.exe
+
+Diagnostics:
+  Suppress:
+    - "definition of builtin function"
