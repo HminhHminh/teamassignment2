@@ -175,40 +175,6 @@ To guarantee scientific rigor, statistical significance, and strict reproducibil
 | **64** | 0.7980 s | 0.0157 s | 0.12x | 0.2% | 37.6 | 3.141659 |
 | **100** | 0.8310 s | 0.0095 s | 0.12x | 0.1% | 36.1 | 3.141774 |
 | **128** | 0.7342 s | 0.0303 s | 0.13x | 0.1% | 40.9 | 3.141816 |
-
-### 4.3. Performance Curves
-- **Execution Time vs Number of Threads**: `results/execution_time_vs_threads.png`
-- **Speedup vs Number of Threads**: `results/speedup_vs_threads.png`
-- **Parallel Efficiency vs Number of Threads**: `results/parallel_efficiency_vs_threads.png`
-- **Throughput vs Number of Threads**: `results/throughput_vs_threads.png`
-
-### Approach 3 – Shared Mutex (Exercise 3.3)
-
-Each measurement uses the same 30 million points and five repetitions as the
-baseline and Approach 2. Speedup is calculated against the single-thread
-baseline.
-
-| Threads ($T$) | Mean Time (s) | Speedup ($T_1 / T_p$) |
-|:---:|---:|---:|
-| 1 | 1.0370 | 0.18x |
-| 2 | 1.9527 | 0.09x |
-| 4 | 2.1022 | 0.09x |
-| 6 | 2.1265 | 0.09x |
-| 8 | 2.4106 | 0.08x |
-| 12 | 3.8587 | 0.05x |
-| 16 | 4.2349 | 0.04x |
-| 24 | 3.0195 | 0.06x |
-| 32 | 7.3835 | 0.02x |
-| 64 | 5.9954 | 0.03x |
-| 100 | 5.4277 | 0.03x |
-| 128 | 6.3658 | 0.03x |
-
-### Performance Curves
-- **Execution Time vs Threads**: `results/execution_time_vs_threads.png`
-- **Speedup vs Threads**: `results/speedup_vs_threads.png`
-- **Parallel Efficiency vs Threads**: `results/parallel_efficiency_vs_threads.png`
-- **Throughput vs Threads**: `results/throughput_vs_threads.png`
-
 ---
 
 ## 5. Key Operating System Insights
