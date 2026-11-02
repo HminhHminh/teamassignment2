@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540">
+<rect width="100%" height="100%" fill="white"/>
+<text x="450.0" y="32" text-anchor="middle" font-size="22">6.2 Thread scaling</text>
+<path d="M90,70 V450 H870" fill="none" stroke="#333"/>
+<path d="M90,70.0 H870" stroke="#ddd"/>
+<path d="M90,146.0 H870" stroke="#ddd"/>
+<path d="M90,222.0 H870" stroke="#ddd"/>
+<path d="M90,298.0 H870" stroke="#ddd"/>
+<path d="M90,374.0 H870" stroke="#ddd"/>
+<path d="M90,450.0 H870" stroke="#ddd"/>
+<text x="90.0" y="474" text-anchor="middle" font-size="12">1</text>
+<text x="207.4" y="474" text-anchor="middle" font-size="12">2</text>
+<text x="324.8" y="474" text-anchor="middle" font-size="12">4</text>
+<text x="362.6" y="474" text-anchor="middle" font-size="12">5</text>
+<text x="442.2" y="474" text-anchor="middle" font-size="12">8</text>
+<text x="559.6" y="474" text-anchor="middle" font-size="12">16</text>
+<text x="870.0" y="474" text-anchor="middle" font-size="12">100</text>
+<text x="480.0" y="515" text-anchor="middle" font-size="15">Threads (log scale)</text>
+<text transform="translate(22,260.0) rotate(-90)" text-anchor="middle" font-size="15">Average seconds</text>
+<polyline points="90.0,70.0 207.4,298.0 324.8,341.9 362.6,429.0 442.2,450.0 559.6,403.3 870.0,441.3" fill="none" stroke="#1565c0" stroke-width="3"/>
+<circle cx="90.0" cy="70.0" r="4" fill="#1565c0"/>
+<circle cx="207.4" cy="298.0" r="4" fill="#1565c0"/>
+<circle cx="324.8" cy="341.9" r="4" fill="#1565c0"/>
+<circle cx="362.6" cy="429.0" r="4" fill="#1565c0"/>
+<circle cx="442.2" cy="450.0" r="4" fill="#1565c0"/>
+<circle cx="559.6" cy="403.3" r="4" fill="#1565c0"/>
+<circle cx="870.0" cy="441.3" r="4" fill="#1565c0"/>
+<path d="M725,70 h22" stroke="#1565c0" stroke-width="3"/>
+<text x="752" y="75" font-size="12">local accumulation</text>
+</svg>
