@@ -112,19 +112,75 @@ significantly longer than Approach 2.
 
 ---
 
-## 4. Benchmark Results ($N = 30,000,000$, 12-Logical-Core Host)
+## 4. Performance Measurement Methodology & Benchmark Results
 
-| Threads ($T$) | Mean Time (s) | Speedup ($S = T_1 / T_p$) | Efficiency ($E = S / T$) | Throughput (Mpts/s) | Estimated $\pi$ |
-|:---:|:---:|:---:|:---:|:---:|:---:|
-| **1 (Baseline 3.1)** | **0.1816 s** | **1.00x** | **100.0%** | **165.2** | 3.141434 |
-| 2 | 0.0949 s | 1.91x | 95.7% | 316.1 | 3.141525 |
-| 4 | 0.0618 s | 2.94x | 73.5% | 485.6 | 3.141527 |
-| 6 | 0.0490 s | 3.71x | 61.8% | 612.5 | 3.141520 |
-| 8 | 0.0427 s | 4.25x | 53.1% | 702.4 | 3.141393 |
-| **12 (Logical Cores)** | **0.0326 s** | **5.57x** | **46.5%** | **920.8** | 3.141547 |
-| **24** | **0.0341 s** | **5.33x** | **22.2%** | **880.6** | 3.141699 |
-| 64 | 0.0374 s | 4.86x | 7.6% | 802.1 | 3.141659 |
-| 128 | 0.0351 s | 5.18x | 4.0% | 855.0 | 3.141816 |
+### 4.1. Measurement Methodology & Experimental Setup
+To guarantee scientific rigor, statistical significance, and strict reproducibility as required by the assignment guidelines, the benchmarking methodology follows these core protocols:
+
+1. **Hardware & Operating System Environment:**
+   - **Environment:** Ubuntu Linux (64-bit POSIX kernel) running on VMware Workstation.
+   - **Allocated Virtual Hardware:** 2 Logical vCPUs (`cpu_cores_logical: 2`), 4.0 GB RAM.
+   - **Host Hardware Reference:** Intel(R) Core(TM) i7-14650HX.
+   - **Compiler & Flags:** `GCC (Ubuntu)` with flags `-O3 -pthread -Wall -Wextra -lm`.
+   - **Execution Quiescence:** Non-essential background processes were terminated prior to benchmarking, ensuring zero interference from CPU frequency throttling or external load.
+
+2. **Compute-Only Timing Isolation:**
+   - Timing measurements strictly isolate the computational kernel using `clock_gettime(CLOCK_MONOTONIC)`, delivering nanosecond resolution unaffected by system time adjustments or timezone changes.
+   - **Strict Rule:** Dynamic memory allocation (`malloc`), thread creation (`pthread_create`), thread joining (`pthread_join`), and console I/O (`printf`) are completely excluded from measured execution windows.
+
+3. **Fixed Problem Size (Strong Scaling):**
+   - In accordance with Amdahl's Law, the sample size is fixed at $N = 30,000,000$ points ($3 \times 10^7$) across all configurations.
+
+4. **Statistical Repetition & Independent PRNG:**
+   - Every thread count configuration is independently executed for $R = 5$ repetitions to calculate sample mean ($\bar{T}$) and sample standard deviation ($\sigma$).
+   - A deterministic master seed (`123456789`) initializes independent lock-free `xorshift64*` state instances per thread stack, completely eliminating pseudo-random generator lock contention and false sharing.
+
+---
+
+### 4.2. Benchmark Results ($N = 30,000,000$, 2-vCPU Ubuntu VM)
+
+#### Approach 1 – Single-Thread Baseline (Exercise 3.1):
+- **Mean Execution Time ($T_{\text{single}}$):** `0.09594 s` ($\pm 0.00579$ s)
+- **Baseline Throughput:** `312.70 Mpoints/s`
+- **Estimated $\pi$ Value:** `3.141434` (Absolute Error: $0.000158$)
+
+#### Approach 2 – Multi-Thread Local Accumulation (Exercise 3.2):
+| Threads ($T$) | Mean Time (s) | Std Dev ($\pm$ s) | Speedup ($S = T_1 / T_p$) | Efficiency ($E = S / T$) | Throughput (Mpts/s) | Estimated $\pi$ |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **1** | 0.0971 s | 0.0053 s | 0.99x | 98.8% | 309.1 | 3.141434 |
+| **2 (Hardware Cores)** | **0.0572 s** | 0.0111 s | **1.68x** | **83.9%** | **524.9** | 3.141525 |
+| **4** | 0.0512 s | 0.0034 s | 1.87x | 46.8% | 585.5 | 3.141527 |
+| **6** | 0.0488 s | 0.0023 s | 1.96x | 32.7% | 614.3 | 3.141520 |
+| **8 (Peak Speedup)** | **0.0461 s** | 0.0014 s | **2.08x** | **26.0%** | **650.8** | 3.141393 |
+| **12** | 0.0602 s | 0.0067 s | 1.59x | 13.3% | 497.9 | 3.141547 |
+| **16** | 0.0572 s | 0.0080 s | 1.68x | 10.5% | 524.4 | 3.141670 |
+| **24** | 0.0577 s | 0.0039 s | 1.66x | 6.9% | 519.7 | 3.141699 |
+| **32** | 0.0592 s | 0.0045 s | 1.62x | 5.1% | 506.9 | 3.141619 |
+| **64** | 0.0581 s | 0.0026 s | 1.65x | 2.6% | 516.5 | 3.141659 |
+| **100** | 0.0660 s | 0.0024 s | 1.45x | 1.5% | 454.9 | 3.141774 |
+| **128** | 0.0679 s | 0.0026 s | 1.41x | 1.1% | 442.1 | 3.141816 |
+
+#### Approach 3 – Shared Variable with Mutex (Exercise 3.3):
+| Threads ($T$) | Mean Time (s) | Std Dev ($\pm$ s) | Speedup ($S = T_1 / T_p$) | Efficiency ($E$) | Throughput (Mpts/s) | Estimated $\pi$ |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **1** | 0.3133 s | 0.0070 s | 0.31x | 30.6% | 95.8 | 3.141434 |
+| **2** | 0.6118 s | 0.0995 s | 0.16x | 7.8% | 49.0 | 3.141525 |
+| **4** | 0.7557 s | 0.0770 s | 0.13x | 3.2% | 39.7 | 3.141527 |
+| **6** | 0.7064 s | 0.0208 s | 0.14x | 2.3% | 42.5 | 3.141520 |
+| **8** | 0.8150 s | 0.0303 s | 0.12x | 1.5% | 36.8 | 3.141393 |
+| **12** | 0.7043 s | 0.0103 s | 0.14x | 1.1% | 42.6 | 3.141547 |
+| **16** | 0.7005 s | 0.0083 s | 0.14x | 0.9% | 42.8 | 3.141670 |
+| **24** | 0.7667 s | 0.0092 s | 0.13x | 0.5% | 39.1 | 3.141699 |
+| **32** | 0.7424 s | 0.0032 s | 0.13x | 0.4% | 40.4 | 3.141619 |
+| **64** | 0.7980 s | 0.0157 s | 0.12x | 0.2% | 37.6 | 3.141659 |
+| **100** | 0.8310 s | 0.0095 s | 0.12x | 0.1% | 36.1 | 3.141774 |
+| **128** | 0.7342 s | 0.0303 s | 0.13x | 0.1% | 40.9 | 3.141816 |
+
+### 4.3. Performance Curves
+- **Execution Time vs Number of Threads**: `results/execution_time_vs_threads.png`
+- **Speedup vs Number of Threads**: `results/speedup_vs_threads.png`
+- **Parallel Efficiency vs Number of Threads**: `results/parallel_efficiency_vs_threads.png`
+- **Throughput vs Number of Threads**: `results/throughput_vs_threads.png`
 
 ### Approach 3 – Shared Mutex (Exercise 3.3)
 
