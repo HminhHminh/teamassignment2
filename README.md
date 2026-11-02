@@ -43,7 +43,7 @@ $$\pi \approx 4 \times \frac{N_{\text{inside}}}{N_{\text{total}}}$$
 ├── results/                # Performance measurements and publication plots
 │   ├── benchmark_data.json
 │   ├── measurements.csv
-│   ├── execution_time_vs_threads.png
+│   ├── execution_time_vs_threads.png   # Approaches 1, 2, and 3
 │   ├── speedup_vs_threads.png
 │   ├── parallel_efficiency_vs_threads.png
 │   └── throughput_vs_threads.png
@@ -96,25 +96,56 @@ Options:
 # Run Exercise 3.2 (Local accumulation, 8 threads, 30M points):
 ./monte_carlo -a 2 -n 30000000 -t 8 -r 5
 
+# Run Exercise 3.3 (Shared counter protected by a mutex):
+./monte_carlo -a 3 -n 30000000 -t 8 -r 5
+
 # Run automated Python benchmark suite:
 python run_experiments.py
 ```
 
+The benchmark suite measures Approaches 2 and 3 with the same point count,
+thread counts, and repetitions. It stores both sets of results in
+`results/benchmark_data.json` and `results/measurements.csv`, and compares them
+in the execution-time, speedup, efficiency, and throughput plots. Approach 3
+locks the mutex on every point inside the circle, so its benchmark can take
+significantly longer than Approach 2.
+
 ---
 
-## 4. Benchmark Results ($N = 30,000,000$, 12-Core Host)
+## 4. Benchmark Results ($N = 30,000,000$, 12-Logical-Core Host)
 
 | Threads ($T$) | Mean Time (s) | Speedup ($S = T_1 / T_p$) | Efficiency ($E = S / T$) | Throughput (Mpts/s) | Estimated $\pi$ |
 |:---:|:---:|:---:|:---:|:---:|:---:|
-| **1 (Baseline 3.1)** | **0.1093 s** | **1.00x** | **100.0%** | **274.5** | 3.141434 |
-| 2 | 0.0565 s | 1.94x | 96.8% | 531.3 | 3.141525 |
-| 4 | 0.0318 s | 3.44x | 85.9% | 943.4 | 3.141527 |
-| 6 | 0.0263 s | 4.15x | 69.2% | 1140.3 | 3.141520 |
-| 8 | 0.0201 s | 5.44x | 68.0% | 1494.4 | 3.141393 |
-| **12 (Physical Cores)** | **0.0195 s** | **5.61x** | **46.7%** | **1538.9** | 3.141547 |
-| **24 (Peak)** | **0.0166 s** | **6.59x** | **27.4%** | **1808.3** | 3.141699 |
-| 64 | 0.0174 s | 6.28x | 9.8% | 1723.6 | 3.141659 |
-| 128 | 0.0174 s | 6.26x | 4.9% | 1719.5 | 3.141816 |
+| **1 (Baseline 3.1)** | **0.1816 s** | **1.00x** | **100.0%** | **165.2** | 3.141434 |
+| 2 | 0.0949 s | 1.91x | 95.7% | 316.1 | 3.141525 |
+| 4 | 0.0618 s | 2.94x | 73.5% | 485.6 | 3.141527 |
+| 6 | 0.0490 s | 3.71x | 61.8% | 612.5 | 3.141520 |
+| 8 | 0.0427 s | 4.25x | 53.1% | 702.4 | 3.141393 |
+| **12 (Logical Cores)** | **0.0326 s** | **5.57x** | **46.5%** | **920.8** | 3.141547 |
+| **24** | **0.0341 s** | **5.33x** | **22.2%** | **880.6** | 3.141699 |
+| 64 | 0.0374 s | 4.86x | 7.6% | 802.1 | 3.141659 |
+| 128 | 0.0351 s | 5.18x | 4.0% | 855.0 | 3.141816 |
+
+### Approach 3 – Shared Mutex (Exercise 3.3)
+
+Each measurement uses the same 30 million points and five repetitions as the
+baseline and Approach 2. Speedup is calculated against the single-thread
+baseline.
+
+| Threads ($T$) | Mean Time (s) | Speedup ($T_1 / T_p$) |
+|:---:|---:|---:|
+| 1 | 1.0370 | 0.18x |
+| 2 | 1.9527 | 0.09x |
+| 4 | 2.1022 | 0.09x |
+| 6 | 2.1265 | 0.09x |
+| 8 | 2.4106 | 0.08x |
+| 12 | 3.8587 | 0.05x |
+| 16 | 4.2349 | 0.04x |
+| 24 | 3.0195 | 0.06x |
+| 32 | 7.3835 | 0.02x |
+| 64 | 5.9954 | 0.03x |
+| 100 | 5.4277 | 0.03x |
+| 128 | 6.3658 | 0.03x |
 
 ### Performance Curves
 - **Execution Time vs Threads**: `results/execution_time_vs_threads.png`
