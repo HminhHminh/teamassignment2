@@ -115,25 +115,25 @@ significantly longer than Approach 2.
 ## 4. Performance Measurement Methodology & Benchmark Results
 
 ### 4.1. Measurement Methodology & Experimental Setup
-To guarantee scientific rigor, statistical significance, and strict reproducibility as required by the assignment guidelines, the benchmarking methodology follows these core protocols:
 
 1. **Hardware & Operating System Environment:**
    - **Environment:** Ubuntu Linux (64-bit POSIX kernel) running on VMware Workstation.
    - **Allocated Virtual Hardware:** 2 Logical vCPUs (`cpu_cores_logical: 2`), 4.0 GB RAM.
    - **Host Hardware Reference:** Intel(R) Core(TM) i7-14650HX.
    - **Compiler & Flags:** `GCC (Ubuntu)` with flags `-O3 -pthread -Wall -Wextra -lm`.
-   - **Execution Quiescence:** Non-essential background processes were terminated prior to benchmarking, ensuring zero interference from CPU frequency throttling or external load.
 
-2. **Compute-Only Timing Isolation:**
-   - Timing measurements strictly isolate the computational kernel using `clock_gettime(CLOCK_MONOTONIC)`, delivering nanosecond resolution unaffected by system time adjustments or timezone changes.
-   - **Strict Rule:** Dynamic memory allocation (`malloc`), thread creation (`pthread_create`), thread joining (`pthread_join`), and console I/O (`printf`) are completely excluded from measured execution windows.
+2. **Timing Scope:**
+   - Elapsed time is measured with `clock_gettime(CLOCK_MONOTONIC)`.
+   - For the multithreaded approaches, timing starts immediately before thread creation and ends after all threads have joined. It therefore includes `pthread_create`, worker computation (including mutex contention in Approach 3), and `pthread_join`.
+   - Memory allocation, argument/seed initialization, mutex initialization/destruction, result calculation, and console output are outside the measured interval. Approach 1 measures its computation loop.
 
 3. **Fixed Problem Size (Strong Scaling):**
-   - In accordance with Amdahl's Law, the sample size is fixed at $N = 30,000,000$ points ($3 \times 10^7$) across all configurations.
+   - The sample size is fixed at $N = 30,000,000$ points ($3 \times 10^7$) across all configurations.
 
 4. **Statistical Repetition & Independent PRNG:**
-   - Every thread count configuration is independently executed for $R = 5$ repetitions to calculate sample mean ($\bar{T}$) and sample standard deviation ($\sigma$).
-   - A deterministic master seed (`123456789`) initializes independent lock-free `xorshift64*` state instances per thread stack, completely eliminating pseudo-random generator lock contention and false sharing.
+   - Every thread-count configuration is executed for $R = 5$ repetitions; the tables report mean time and standard deviation.
+   - A deterministic master seed (`123456789`) produces independent `xorshift64*` state instances for each worker thread. The seed changes deterministically between repetitions.
+   - Speedup is calculated against the Approach 1 mean time: $S = T_{\text{single}} / T_{\text{parallel}}$. Parallel efficiency is $E = S / T$, where $T$ is the number of threads. Throughput is $N / T_{\text{parallel}}$.
 
 ---
 
@@ -148,7 +148,7 @@ To guarantee scientific rigor, statistical significance, and strict reproducibil
 | Threads ($T$) | Mean Time (s) | Std Dev ($\pm$ s) | Speedup ($S = T_1 / T_p$) | Efficiency ($E = S / T$) | Throughput (Mpts/s) | Estimated $\pi$ |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | **1** | 0.0971 s | 0.0053 s | 0.99x | 98.8% | 309.1 | 3.141434 |
-| **2 (Hardware Cores)** | **0.0572 s** | 0.0111 s | **1.68x** | **83.9%** | **524.9** | 3.141525 |
+| **2 (Allocated vCPUs)** | **0.0572 s** | 0.0111 s | **1.68x** | **83.9%** | **524.9** | 3.141525 |
 | **4** | 0.0512 s | 0.0034 s | 1.87x | 46.8% | 585.5 | 3.141527 |
 | **6** | 0.0488 s | 0.0023 s | 1.96x | 32.7% | 614.3 | 3.141520 |
 | **8 (Peak Speedup)** | **0.0461 s** | 0.0014 s | **2.08x** | **26.0%** | **650.8** | 3.141393 |
@@ -179,6 +179,7 @@ To guarantee scientific rigor, statistical significance, and strict reproducibil
 
 ## 5. Key Operating System Insights
 
-1. **Hardware Core Saturation**: Near-linear speedup is achieved up to 8 threads ($5.44\times$). Beyond 12 threads (the physical/logical core limit), performance plateaus as ALUs are fully saturated.
-2. **Oversubscription Costs**: Running $T \gg 12$ threads forces the OS scheduler into aggressive preemptive time-slicing, causing context switches and cache thrashing that lower throughput from $1808\text{ Mpts/s}$ ($T=24$) down to $1707\text{ Mpts/s}$ ($T=100$).
-3. **Synchronization Overhead**: Mutex contention inside the worker loop serializes execution, transforming parallel threads into an inefficient lock queue ($< 0.1\times$ speedup). Local accumulation (Map-Reduce) avoids all cross-thread interference.
+1. **Non-linear speedup and saturation:** On this VM with 2 logical vCPUs, Approach 2 reaches its best measured speedup of $2.08\times$ at 8 threads. More threads do not improve performance consistently; the 12-thread run, for example, is slower than the 8-thread run.
+2. **Oversubscription:** Configurations with more threads than the VM's 2 logical vCPUs oversubscribe the available CPU capacity. Scheduling and thread-management overhead contribute to diminishing returns; the measurements do not show a monotonic speedup as thread count increases.
+3. **Synchronization overhead:** Approach 3 takes longer than the single-thread baseline at every tested thread count (speedup $0.12$–$0.31\times$). Locking the shared counter on every hit introduces contention, while Approach 2 avoids this per-hit shared-state update with local counters and a final reduction.
+4. **Parallel efficiency:** Efficiency decreases as the thread count increases because speedup grows more slowly than the number of threads, especially under oversubscription.
