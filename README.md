@@ -124,8 +124,8 @@ significantly longer than Approach 2.
 
 2. **Timing Scope:**
    - Elapsed time is measured with `clock_gettime(CLOCK_MONOTONIC)`.
-   - For the multithreaded approaches, timing starts immediately before thread creation and ends after all threads have joined. It therefore includes `pthread_create`, worker computation (including mutex contention in Approach 3), and `pthread_join`.
-   - Memory allocation, argument/seed initialization, mutex initialization/destruction, result calculation, and console output are outside the measured interval. Approach 1 measures its computation loop.
+   - For the multithreaded approaches, workers are created and initialized before timing, then wait at a start gate. Timing begins as the gate releases them and ends when the last worker records completion. This excludes `pthread_create` and `pthread_join`, while including worker computation and mutex contention.
+   - Memory allocation, argument/seed initialization, mutex initialization/destruction, result reduction, and console output are outside the measured interval. Approach 1 measures its computation loop.
 
 3. **Fixed Problem Size (Strong Scaling):**
    - The sample size is fixed at $N = 30,000,000$ points ($3 \times 10^7$) across all configurations.
@@ -138,6 +138,8 @@ significantly longer than Approach 2.
 ---
 
 ### 4.2. Benchmark Results ($N = 30,000,000$, 2-vCPU Ubuntu VM)
+
+> The committed benchmark tables and plots were produced before the compute-only timing change. Regenerate them with the current source before using them as results for this methodology.
 
 #### Approach 1 – Single-Thread Baseline (Exercise 3.1):
 - **Mean Execution Time ($T_{\text{single}}$):** `0.09594 s` ($\pm 0.00579$ s)
@@ -183,3 +185,70 @@ significantly longer than Approach 2.
 2. **Oversubscription:** Configurations with more threads than the VM's 2 logical vCPUs oversubscribe the available CPU capacity. Scheduling and thread-management overhead contribute to diminishing returns; the measurements do not show a monotonic speedup as thread count increases.
 3. **Synchronization overhead:** Approach 3 takes longer than the single-thread baseline at every tested thread count (speedup $0.12$–$0.31\times$). Locking the shared counter on every hit introduces contention, while Approach 2 avoids this per-hit shared-state update with local counters and a final reduction.
 4. **Parallel efficiency:** Efficiency decreases as the thread count increases because speedup grows more slowly than the number of threads, especially under oversubscription.
+
+---
+
+## 6. Trade-off Experiments
+
+Section 6 measures synchronization frequency, thread scaling with local accumulation, and local accumulation versus a shared mutex counter. Its separate run used Ubuntu with 4 online logical CPUs, 30,000,000 points, 5 repetitions, and seed `123456789`; these results are separate from the Section 4 benchmark, which used a 2-vCPU VM.
+
+For this run, batch synchronization improved from a mean of `1.1064 s` at `k=1` to `0.0945 s` at `k=100`, then measured `0.1006 s` at `k=1000`. Local accumulation was fastest among the tested thread counts at 8 threads (`0.0535 s`); using 16 or 100 threads did not improve on that result. The shared-counter approach was slower than local accumulation at every tested thread count, consistent with mutex contention on the shared counter.
+
+Approach 2 (`-a 2`) supplies local accumulation, Approach 3 (`-a 3`) supplies the shared mutex, and the batch variant (`-a batch`) changes synchronization frequency. These experiments extend the existing approaches without replacing the code for Sections 3 and 4.
+
+Run from the repository root on Ubuntu:
+
+```bash
+bash section6/run.sh 30000000 5 123456789
+```
+
+The arguments are points per configuration, repetitions, and master seed. The script compiles the project, then writes individual measurements to `results/section6_results.csv`, averages to `results/section6_summary.csv`, and generates these charts:
+
+| Experiment | Configurations | Chart |
+|---|---|---|
+| 6.1 Synchronization frequency | Batch approach at `k=1,10,100,1000`, using the machine's online logical CPU count | `results/section6_sync_frequency.svg` |
+| 6.2 Thread scaling | Approach 2 at thread counts below, near, and above the CPU count | `results/section6_thread_scaling.svg` |
+| 6.3 Local versus shared | Approaches 2 and 3 at matching thread counts and point count | `results/section6_local_vs_shared.svg` |
+
+### 6.1 Synchronization frequency
+
+| Batch size `k` | Threads | Mean time (s) |
+|---:|---:|---:|
+| 1 | 4 | 1.1064 |
+| 10 | 4 | 0.3441 |
+| 100 | 4 | 0.0945 |
+| 1000 | 4 | 0.1006 |
+
+Increasing `k` from 1 to 100 greatly reduces time because workers acquire the mutex less often. The `k=1000` result is slightly slower than `k=100`, so the measurements do not show a perfectly decreasing trend; this difference may be run-to-run variation and should be described as measured.
+
+### 6.2 Thread scaling with local accumulation
+
+| Threads | Mean time (s) |
+|---:|---:|
+| 1 | 0.1570 |
+| 2 | 0.0949 |
+| 4 | 0.0829 |
+| 5 | 0.0592 |
+| 8 | 0.0535 |
+| 16 | 0.0662 |
+| 100 | 0.0559 |
+
+Among the tested configurations, 8 threads had the lowest mean time. Increasing the count to 16 did not help, and 100 threads did not beat the 8-thread result. The measurements illustrate diminishing and non-monotonic returns as more threads compete for CPU time.
+
+### 6.3 Local accumulation versus a shared mutex counter
+
+| Threads | Local mean (s) | Shared mean (s) |
+|---:|---:|---:|
+| 1 | 0.1570 | 0.5942 |
+| 2 | 0.0949 | 1.1966 |
+| 4 | 0.0829 | 1.1702 |
+| 5 | 0.0592 | 1.1205 |
+| 8 | 0.0535 | 1.0359 |
+| 16 | 0.0662 | 0.9049 |
+| 100 | 0.0559 | 0.8386 |
+
+The shared-counter approach was slower at every tested thread count. Each hit on the circle requires workers to contend for the same mutex-protected counter, while local accumulation lets each worker count independently and combines the totals afterward. The shared results also do not improve monotonically with thread count.
+
+The Section 6 results above were collected on Ubuntu with **4 online logical CPUs**, using 30,000,000 points per configuration, 5 repetitions, and master seed `123456789`. These results are separate from the Section 4 benchmark, which used a different 2-vCPU setup. Each worker is created and initialized before timing; a start gate releases them after the timer starts, and timing ends when the last worker records completion. Thus thread creation and joining are excluded while worker computation and mutex contention are included.
+
+The averages are based on five runs, so small differences—especially between `k=100` and `k=1000`—should not be treated as a universal performance rule. See the individual runs in `results/section6_results.csv` when interpreting variability.

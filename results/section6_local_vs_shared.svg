@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540">
+<rect width="100%" height="100%" fill="white"/>
+<text x="450.0" y="32" text-anchor="middle" font-size="22">6.3 Local vs shared counter</text>
+<path d="M90,70 V450 H870" fill="none" stroke="#333"/>
+<path d="M90,70.0 H870" stroke="#ddd"/>
+<path d="M90,146.0 H870" stroke="#ddd"/>
+<path d="M90,222.0 H870" stroke="#ddd"/>
+<path d="M90,298.0 H870" stroke="#ddd"/>
+<path d="M90,374.0 H870" stroke="#ddd"/>
+<path d="M90,450.0 H870" stroke="#ddd"/>
+<text x="90.0" y="474" text-anchor="middle" font-size="12">1</text>
+<text x="207.4" y="474" text-anchor="middle" font-size="12">2</text>
+<text x="324.8" y="474" text-anchor="middle" font-size="12">4</text>
+<text x="362.6" y="474" text-anchor="middle" font-size="12">5</text>
+<text x="442.2" y="474" text-anchor="middle" font-size="12">8</text>
+<text x="559.6" y="474" text-anchor="middle" font-size="12">16</text>
+<text x="870.0" y="474" text-anchor="middle" font-size="12">100</text>
+<text x="480.0" y="515" text-anchor="middle" font-size="15">Threads (log scale)</text>
+<text transform="translate(22,260.0) rotate(-90)" text-anchor="middle" font-size="15">Average seconds</text>
+<polyline points="90.0,415.6 207.4,436.2 324.8,440.2 362.6,448.1 442.2,450.0 559.6,445.8 870.0,449.2" fill="none" stroke="#1565c0" stroke-width="3"/>
+<circle cx="90.0" cy="415.6" r="4" fill="#1565c0"/>
+<circle cx="207.4" cy="436.2" r="4" fill="#1565c0"/>
+<circle cx="324.8" cy="440.2" r="4" fill="#1565c0"/>
+<circle cx="362.6" cy="448.1" r="4" fill="#1565c0"/>
+<circle cx="442.2" cy="450.0" r="4" fill="#1565c0"/>
+<circle cx="559.6" cy="445.8" r="4" fill="#1565c0"/>
+<circle cx="870.0" cy="449.2" r="4" fill="#1565c0"/>
+<path d="M725,70 h22" stroke="#1565c0" stroke-width="3"/>
+<text x="752" y="75" font-size="12">local accumulation</text>
+<polyline points="90.0,270.3 207.4,70.0 324.8,78.8 362.6,95.3 442.2,123.4 559.6,167.0 870.0,189.0" fill="none" stroke="#e65100" stroke-width="3"/>
+<circle cx="90.0" cy="270.3" r="4" fill="#e65100"/>
+<circle cx="207.4" cy="70.0" r="4" fill="#e65100"/>
+<circle cx="324.8" cy="78.8" r="4" fill="#e65100"/>
+<circle cx="362.6" cy="95.3" r="4" fill="#e65100"/>
+<circle cx="442.2" cy="123.4" r="4" fill="#e65100"/>
+<circle cx="559.6" cy="167.0" r="4" fill="#e65100"/>
+<circle cx="870.0" cy="189.0" r="4" fill="#e65100"/>
+<path d="M725,90 h22" stroke="#e65100" stroke-width="3"/>
+<text x="752" y="95" font-size="12">shared mutex</text>
+</svg>

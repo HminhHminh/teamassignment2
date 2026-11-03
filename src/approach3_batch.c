@@ -8,6 +8,8 @@ typedef struct {
     long long points_to_process;
     uint64_t seed;
     long long k_frequency; // Update shared variable every k points
+    StartGate *start_gate;
+    double finished_at;
 } WorkerArgApproach3Batch;
 
 static void* worker_approach3_batch(void* ptr) {
@@ -17,6 +19,8 @@ static void* worker_approach3_batch(void* ptr) {
     long long k = arg->k_frequency;
 
     long long local_batch = 0;
+
+    if (!start_gate_wait(arg->start_gate)) return NULL;
 
     for (long long i = 0; i < n; i++) {
         double x = rand_coord(&seed);
@@ -43,6 +47,7 @@ static void* worker_approach3_batch(void* ptr) {
         pthread_mutex_unlock(&g_batch_mutex);
     }
 
+    arg->finished_at = get_time_sec();
     return NULL;
 }
 
@@ -51,9 +56,27 @@ static void* worker_approach3_batch(void* ptr) {
 double run_approach3_batch(long long total_points, int num_threads, long long k_frequency, uint64_t master_seed, long long *out_circle_points, double *out_pi) {
     pthread_t *threads = (pthread_t*)malloc(num_threads * sizeof(pthread_t));
     WorkerArgApproach3Batch *args = (WorkerArgApproach3Batch*)malloc(num_threads * sizeof(WorkerArgApproach3Batch));
+    StartGate start_gate;
+    if (threads == NULL || args == NULL || k_frequency < 1 || start_gate_init(&start_gate) != 0) {
+        fprintf(stderr, "Approach 3 batch: invalid setup or allocation failure\n");
+        free(threads);
+        free(args);
+        *out_circle_points = 0;
+        *out_pi = 0.0;
+        return 0.0;
+    }
 
     g_batch_shared_count = 0;
-    pthread_mutex_init(&g_batch_mutex, NULL);
+    int mutex_error = pthread_mutex_init(&g_batch_mutex, NULL);
+    if (mutex_error != 0) {
+        fprintf(stderr, "Approach 3 batch: pthread_mutex_init failed (%d)\n", mutex_error);
+        start_gate_destroy(&start_gate);
+        free(threads);
+        free(args);
+        *out_circle_points = 0;
+        *out_pi = 0.0;
+        return 0.0;
+    }
 
     long long base_chunk = total_points / num_threads;
     long long remainder = total_points % num_threads;
@@ -63,26 +86,45 @@ double run_approach3_batch(long long total_points, int num_threads, long long k_
         args[t].points_to_process = base_chunk + (t == num_threads - 1 ? remainder : 0);
         args[t].seed = init_thread_seed(master_seed, t);
         args[t].k_frequency = k_frequency;
+        args[t].start_gate = &start_gate;
     }
 
-    // Start timing parallel computation
-    double t_start = get_time_sec();
-
+    // Create every worker before starting the timed computation.
+    int created = 0;
     for (int t = 0; t < num_threads; t++) {
-        pthread_create(&threads[t], NULL, worker_approach3_batch, &args[t]);
+        int error = pthread_create(&threads[t], NULL, worker_approach3_batch, &args[t]);
+        if (error != 0) {
+            fprintf(stderr, "Approach 3 batch: pthread_create failed (%d)\n", error);
+            start_gate_cancel(&start_gate);
+            for (int j = 0; j < created; j++) pthread_join(threads[j], NULL);
+            pthread_mutex_destroy(&g_batch_mutex);
+            start_gate_destroy(&start_gate);
+            free(threads);
+            free(args);
+            *out_circle_points = 0;
+            *out_pi = 0.0;
+            return 0.0;
+        }
+        created++;
     }
 
+    double t_start;
+    start_gate_release(&start_gate, &t_start);
+
+    double last_worker_finished = t_start;
     for (int t = 0; t < num_threads; t++) {
         pthread_join(threads[t], NULL);
+        if (args[t].finished_at > last_worker_finished)
+            last_worker_finished = args[t].finished_at;
     }
 
-    double t_end = get_time_sec();
-    double elapsed = t_end - t_start;
+    double elapsed = last_worker_finished - t_start;
 
     *out_circle_points = g_batch_shared_count;
     *out_pi = 4.0 * (double)g_batch_shared_count / (double)total_points;
 
     pthread_mutex_destroy(&g_batch_mutex);
+    start_gate_destroy(&start_gate);
     free(threads);
     free(args);
     return elapsed;

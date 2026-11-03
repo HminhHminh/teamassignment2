@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540">
+<rect width="100%" height="100%" fill="white"/>
+<text x="450.0" y="32" text-anchor="middle" font-size="22">6.1 Synchronization frequency</text>
+<path d="M90,70 V450 H870" fill="none" stroke="#333"/>
+<path d="M90,70.0 H870" stroke="#ddd"/>
+<path d="M90,146.0 H870" stroke="#ddd"/>
+<path d="M90,222.0 H870" stroke="#ddd"/>
+<path d="M90,298.0 H870" stroke="#ddd"/>
+<path d="M90,374.0 H870" stroke="#ddd"/>
+<path d="M90,450.0 H870" stroke="#ddd"/>
+<text x="90.0" y="474" text-anchor="middle" font-size="12">1</text>
+<text x="350.0" y="474" text-anchor="middle" font-size="12">10</text>
+<text x="610.0" y="474" text-anchor="middle" font-size="12">100</text>
+<text x="870.0" y="474" text-anchor="middle" font-size="12">1000</text>
+<text x="480.0" y="515" text-anchor="middle" font-size="15">Iterations per mutex update (log scale)</text>
+<text transform="translate(22,260.0) rotate(-90)" text-anchor="middle" font-size="15">Average seconds</text>
+<polyline points="90.0,70.0 350.0,356.3 610.0,450.0 870.0,447.7" fill="none" stroke="#1565c0" stroke-width="3"/>
+<circle cx="90.0" cy="70.0" r="4" fill="#1565c0"/>
+<circle cx="350.0" cy="356.3" r="4" fill="#1565c0"/>
+<circle cx="610.0" cy="450.0" r="4" fill="#1565c0"/>
+<circle cx="870.0" cy="447.7" r="4" fill="#1565c0"/>
+<path d="M725,70 h22" stroke="#1565c0" stroke-width="3"/>
+<text x="752" y="75" font-size="12">batch accumulation</text>
+</svg>
