@@ -16,6 +16,53 @@ static inline double get_time_sec(void) {
     return (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
 }
 
+/* Threads wait here until setup is complete and the measured work can start. */
+typedef struct {
+    pthread_mutex_t mutex;
+    pthread_cond_t condition;
+    int start;
+    int cancel;
+} StartGate;
+
+static inline int start_gate_init(StartGate *gate) {
+    gate->start = 0;
+    gate->cancel = 0;
+    int error = pthread_mutex_init(&gate->mutex, NULL);
+    if (error != 0) return error;
+    error = pthread_cond_init(&gate->condition, NULL);
+    if (error != 0) pthread_mutex_destroy(&gate->mutex);
+    return error;
+}
+
+static inline int start_gate_wait(StartGate *gate) {
+    pthread_mutex_lock(&gate->mutex);
+    while (!gate->start && !gate->cancel)
+        pthread_cond_wait(&gate->condition, &gate->mutex);
+    int should_start = gate->start;
+    pthread_mutex_unlock(&gate->mutex);
+    return should_start;
+}
+
+static inline void start_gate_release(StartGate *gate, double *start_time) {
+    pthread_mutex_lock(&gate->mutex);
+    *start_time = get_time_sec();
+    gate->start = 1;
+    pthread_cond_broadcast(&gate->condition);
+    pthread_mutex_unlock(&gate->mutex);
+}
+
+static inline void start_gate_cancel(StartGate *gate) {
+    pthread_mutex_lock(&gate->mutex);
+    gate->cancel = 1;
+    pthread_cond_broadcast(&gate->condition);
+    pthread_mutex_unlock(&gate->mutex);
+}
+
+static inline void start_gate_destroy(StartGate *gate) {
+    pthread_cond_destroy(&gate->condition);
+    pthread_mutex_destroy(&gate->mutex);
+}
+
 // Fast thread-safe PRNG: Xorshift64*
 // Each thread holds its own state pointer, ensuring zero shared state and zero locks.
 static inline uint64_t xorshift64star(uint64_t *state) {

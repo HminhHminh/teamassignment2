@@ -1,0 +1,13 @@
+{
+  "total_points": 30000000,
+  "runs_per_config": 5,
+  "seed": 123456789,
+  "logical_cpus": 12,
+  "affinity_cpus": 2,
+  "batch_threads": 2,
+  "cpu_affinity_command": "taskset -c 0-1",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "processor": "x86_64",
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "generated_utc": "2026-11-03T02:43:20+00:00"
+}
